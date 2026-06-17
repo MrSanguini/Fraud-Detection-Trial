@@ -1,0 +1,16 @@
+# Large data — never in git; re-download via Kaggle API each session
+data/
+*.csv
+*.zip
+
+# Secrets — never commit
+kaggle.json
+*.env
+
+# Python / notebook cruft
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Large binary artifacts only — small model files are fine to track
+artifacts/*.large
