@@ -23,13 +23,14 @@ def threshold_metrics(y_true, y_scores, threshold):
             "f1":        f1_score(y_true, y_pred, zero_division=0),
             "tp": int(tp), "fp": int(fp), "fn": int(fn), "tn": int(tn)}
 
-def cost(y_true, y_scores, amounts, threshold, fp_unit_cost):
+def cost(y_true, y_scores, amounts, threshold, fp_unit_cost,
+         fn_loss_fraction=1.0, fn_fixed_cost=0.0):
     y_true  = np.asarray(y_true)
     amounts = np.nan_to_num(np.asarray(amounts, dtype=float))
     y_pred  = (np.asarray(y_scores) >= threshold).astype(int)
     fn_mask = (y_true == 1) & (y_pred == 0)        # missed fraud
     fp_mask = (y_true == 0) & (y_pred == 1)        # declined legit
-    fn_cost = amounts[fn_mask].sum()
+    fn_cost = (amounts[fn_mask] * fn_loss_fraction).sum() + fn_mask.sum() * fn_fixed_cost
     fp_cost = fp_mask.sum() * fp_unit_cost
     total   = fn_cost + fp_cost
     return {"fn_cost": fn_cost, "fp_cost": fp_cost, "total_cost": total,
