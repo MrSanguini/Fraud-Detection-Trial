@@ -36,7 +36,7 @@ class Preprocessor:
 
     def transform(self, df):
         df = add_time_features(df)
-        
+
         # Collect columns in a dict to avoid fragmentation
         cols_to_concat = {}
         for c in self.feature_cols:
@@ -45,7 +45,7 @@ class Preprocessor:
                 col = pd.Categorical(col,            # unseen values -> NaN
                                      categories=self.cat_levels[c])
             cols_to_concat[c] = col
-        
+
         # Create final DataFrame in one go
         X = pd.DataFrame(cols_to_concat, index=df.index)
         return X[self.feature_cols]
