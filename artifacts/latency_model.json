@@ -1,0 +1,9 @@
+{
+  "cold_ms": 215.19191700008378,
+  "p50_ms": 43.76255149963981,
+  "p95_ms": 87.85381474999667,
+  "p99_ms": 289.1792518393866,
+  "mean_ms": 56.77208102797704,
+  "n_samples": 1000,
+  "note": "model-only, single-row, Colab CPU; excludes preprocessing+network"
+}
