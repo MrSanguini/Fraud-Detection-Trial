@@ -1,1 +1,549 @@
- 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transaction Checkpoint — Inspection Booth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Special+Elite&display=swap" rel="stylesheet">
+<style>
+:root{
+  --booth:#22241c; --booth2:#2c2f24; --booth3:#383b2d;
+  --paper:#e9dcbb; --paper-dk:#d8c89f; --paper-edge:#b7a578;
+  --ink:#2b2216; --ink-soft:#5a4c33;
+  --admit:#3f6d38; --detain:#a8781d; --deny:#9e2b25;
+  --banner:#7e1f1c; --metal:#6d6a58;
+  --shadow:4px 4px 0 rgba(0,0,0,.45);
+}
+*{box-sizing:border-box; margin:0; padding:0}
+html{background:var(--booth)}
+body{
+  font-family:'Special Elite', monospace; color:var(--ink);
+  background:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.12) 0 1px, transparent 1px 3px),
+    var(--booth);
+  min-height:100vh;
+}
+::selection{background:var(--deny); color:var(--paper)}
+
+/* ---------- banner ---------- */
+.banner{
+  background:var(--banner); color:var(--paper);
+  border-bottom:4px solid #4c1210;
+  padding:.6rem 1rem; display:flex; align-items:center; gap:1rem;
+}
+.seal{
+  width:44px;height:44px; border:3px solid var(--paper); border-radius:50%;
+  display:grid; place-items:center; font-family:'VT323'; font-size:1.15rem;
+  letter-spacing:1px; flex:none;
+}
+.banner h1{font-family:'VT323',monospace; font-size:clamp(1.4rem,3.5vw,2.1rem);
+  letter-spacing:2px; font-weight:400; text-transform:uppercase}
+.banner small{display:block; font-size:.7rem; letter-spacing:3px; opacity:.85}
+.daterow{margin-left:auto; text-align:right; font-family:'VT323'; font-size:1.05rem; letter-spacing:1px}
+.daterow .ok{color:#9fd08c} .daterow .warn{color:#e8b04a}
+
+/* ---------- layout ---------- */
+.desk{
+  max-width:1180px; margin:1.4rem auto 3rem; padding:0 1rem;
+  display:grid; grid-template-columns: minmax(0,1.15fr) minmax(0,.85fr); gap:1.4rem;
+}
+@media(max-width:920px){ .desk{grid-template-columns:1fr} }
+
+/* ---------- paper sheets ---------- */
+.sheet{
+  background:var(--paper); color:var(--ink);
+  border:2px solid var(--paper-edge);
+  box-shadow:var(--shadow), inset 0 0 60px rgba(120,95,50,.18);
+  padding:1.2rem 1.3rem 1.4rem; position:relative;
+}
+.sheet.tilt-l{transform:rotate(-.5deg)} .sheet.tilt-r{transform:rotate(.45deg)}
+.sheet h2{
+  font-family:'VT323'; font-weight:400; font-size:1.35rem; letter-spacing:2px;
+  text-transform:uppercase; border-bottom:2px solid var(--ink);
+  padding-bottom:.3rem; margin-bottom:.9rem;
+}
+.stamp-corner{
+  position:absolute; top:.6rem; right:.7rem; font-family:'VT323'; font-size:.85rem;
+  border:2px solid var(--ink-soft); color:var(--ink-soft); padding:.1rem .45rem;
+  transform:rotate(4deg); letter-spacing:1px; opacity:.8;
+}
+.pin{position:absolute; top:-9px; left:50%; width:16px; height:16px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #c9c2ad, #55503f 70%);
+  box-shadow:2px 3px 3px rgba(0,0,0,.5); transform:translateX(-50%)}
+
+/* ---------- dossier form ---------- */
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:.75rem 1.3rem}
+@media(max-width:560px){ .grid2{grid-template-columns:1fr} }
+.field label{
+  display:block; font-size:.66rem; letter-spacing:2px; text-transform:uppercase;
+  color:var(--ink-soft); margin-bottom:.15rem;
+}
+.field input, .field select{
+  width:100%; font-family:'Special Elite'; font-size:1rem; color:var(--ink);
+  background:transparent; border:none; border-bottom:2px dashed var(--ink-soft);
+  padding:.15rem .1rem .25rem; outline-offset:3px;
+}
+.field select{cursor:pointer}
+.field input:focus, .field select:focus, button:focus-visible, input[type=range]:focus-visible{
+  outline:3px solid var(--deny); outline-offset:2px;
+}
+.actions{display:flex; gap:.9rem; margin-top:1.2rem; flex-wrap:wrap}
+button{
+  font-family:'VT323'; font-size:1.25rem; letter-spacing:2px; text-transform:uppercase;
+  border:3px solid var(--ink); background:var(--paper-dk); color:var(--ink);
+  padding:.45rem 1.1rem; cursor:pointer; box-shadow:var(--shadow);
+}
+button:active{transform:translate(3px,3px); box-shadow:1px 1px 0 rgba(0,0,0,.45)}
+button.primary{background:var(--deny); color:var(--paper); border-color:#4c1210}
+button:disabled{opacity:.55; cursor:wait}
+
+/* ---------- directives ---------- */
+.directives li{
+  list-style:none; padding:.45rem 0 .45rem 1.6rem; position:relative;
+  border-bottom:1px dashed var(--paper-edge); font-size:.9rem; line-height:1.35;
+}
+.directives li::before{
+  content:attr(data-verdict); position:absolute; left:0; top:.55rem;
+  font-family:'VT323'; font-size:.72rem; letter-spacing:1px;
+  padding:0 .2rem; border:1.5px solid;
+}
+.directives li.deny::before{content:"DENY"; color:var(--deny); border-color:var(--deny)}
+.directives li.detain::before{content:"HOLD"; color:var(--detain); border-color:var(--detain)}
+.directives .note{font-size:.7rem; color:var(--ink-soft); margin-top:.7rem; letter-spacing:1px}
+
+/* ---------- penalty schedule ---------- */
+input[type=range]{
+  -webkit-appearance:none; width:100%; height:10px; margin:.7rem 0 .2rem;
+  background:repeating-linear-gradient(90deg, var(--ink-soft) 0 2px, var(--paper-dk) 2px 14px);
+  border:2px solid var(--ink-soft); cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; width:20px; height:26px; background:var(--deny);
+  border:2px solid #4c1210; box-shadow:2px 2px 0 rgba(0,0,0,.4); cursor:grab;
+}
+input[type=range]::-moz-range-thumb{width:18px;height:24px;background:var(--deny);
+  border:2px solid #4c1210; border-radius:0; cursor:grab}
+.regime{display:grid; grid-template-columns:1fr 1fr; gap:.8rem; margin-top:.8rem}
+.regime .col{border:2px solid var(--ink-soft); padding:.55rem .6rem}
+.regime .col h4{font-family:'VT323'; font-size:.95rem; letter-spacing:1px; margin-bottom:.3rem}
+.regime .old h4{color:var(--deny)} .regime .new h4{color:var(--admit)}
+.regime .big{font-size:1.15rem}
+.regime .sub{font-size:.72rem; color:var(--ink-soft)}
+.savings{margin-top:.7rem; text-align:center; font-family:'VT323'; font-size:1.2rem;
+  letter-spacing:1px; color:var(--admit)}
+
+/* ---------- ledger ---------- */
+.ledger{background:var(--booth2); color:#d9d4bd; border:2px solid #14150f;
+  box-shadow:var(--shadow); padding:1.1rem 1.2rem}
+.ledger h2{font-family:'VT323'; font-weight:400; font-size:1.3rem; letter-spacing:2px;
+  text-transform:uppercase; color:#efe9cf; border-bottom:2px solid #4a4d3a;
+  padding-bottom:.3rem; margin-bottom:.8rem}
+.lrow{margin:.55rem 0}
+.lrow .top{display:flex; justify-content:space-between; font-family:'VT323';
+  font-size:1.02rem; letter-spacing:1px}
+.lbar{height:12px; background:#1a1c14; border:1px solid #000; margin-top:3px}
+.lbar i{display:block; height:100%}
+.lrow.approve .lbar i{background:var(--admit)} .lrow.approve .top b{color:#9fd08c}
+.lrow.review  .lbar i{background:var(--detain)} .lrow.review .top b{color:#e8b04a}
+.lrow.block   .lbar i{background:var(--deny)} .lrow.block .top b{color:#e07a6d}
+.lfoot{font-size:.72rem; color:#a7a189; margin-top:.6rem; line-height:1.4}
+
+/* ---------- overlay ---------- */
+.overlay{
+  position:fixed; inset:0; background:rgba(10,11,8,.82); display:none;
+  align-items:center; justify-content:center; padding:1rem; z-index:50;
+}
+.overlay.open{display:flex}
+.verdict{
+  background:var(--paper); border:3px solid var(--paper-edge);
+  box-shadow:0 0 0 6px rgba(0,0,0,.35), var(--shadow);
+  width:min(680px,100%); max-height:92vh; overflow:auto;
+  padding:1.4rem 1.5rem 1.6rem; position:relative; transform:rotate(-.4deg);
+}
+.verdict.shake{animation:thud .28s ease-out}
+@keyframes thud{
+  0%{transform:rotate(-.4deg) translateY(0)}
+  35%{transform:rotate(-.9deg) translateY(7px)}
+  60%{transform:rotate(-.1deg) translateY(-3px)}
+  100%{transform:rotate(-.4deg) translateY(0)}
+}
+.stamp{
+  position:absolute; top:1.1rem; right:1.2rem;
+  font-family:'VT323'; font-size:2.1rem; letter-spacing:3px; line-height:1;
+  padding:.35rem .7rem .3rem; border:5px double currentColor;
+  transform:scale(3) rotate(-20deg); opacity:0; pointer-events:none;
+  mix-blend-mode:multiply;
+}
+.stamp.slam{
+  transition:transform .16s cubic-bezier(.2,2.2,.4,1), opacity .1s linear;
+  transform:scale(1) rotate(-8deg); opacity:.92;
+}
+.stamp.approve{color:var(--admit)} .stamp.review{color:var(--detain)} .stamp.block{color:var(--deny)}
+.verdict h3{font-family:'VT323'; font-weight:400; font-size:1.3rem; letter-spacing:2px;
+  text-transform:uppercase; margin-bottom:.2rem}
+.verdict .caseid{font-size:.75rem; color:var(--ink-soft); letter-spacing:2px; margin-bottom:1rem}
+
+/* gauge */
+.gauge{margin:1.1rem 0 1.4rem}
+.gauge .track{position:relative; height:26px; border:2px solid var(--ink);
+  display:flex; overflow:visible}
+.gauge .seg{height:100%}
+.gauge .seg.admit{background:repeating-linear-gradient(45deg,#48793f 0 6px,#3f6d38 6px 12px)}
+.gauge .seg.detain{background:repeating-linear-gradient(45deg,#b5861f 0 6px,#a8781d 6px 12px)}
+.gauge .seg.deny{background:repeating-linear-gradient(45deg,#ab332a 0 6px,#9e2b25 6px 12px)}
+.gauge .needle{
+  position:absolute; top:-9px; bottom:-9px; width:4px; background:var(--ink);
+  box-shadow:2px 2px 0 rgba(0,0,0,.4); transition:left .5s cubic-bezier(.3,1.4,.5,1);
+}
+.gauge .needle::after{content:""; position:absolute; top:-7px; left:-6px;
+  border:8px solid transparent; border-top-color:var(--ink)}
+.gauge .ticks{position:relative; height:1.1rem; font-family:'VT323'; font-size:.8rem;
+  color:var(--ink-soft)}
+.gauge .ticks span{position:absolute; transform:translateX(-50%); letter-spacing:1px}
+.gauge .score{ text-align:center; font-family:'VT323'; font-size:1.5rem;
+  letter-spacing:2px; margin-top:.4rem}
+.gauge .score b.approve{color:var(--admit)} .gauge .score b.review{color:var(--detain)}
+.gauge .score b.block{color:var(--deny)}
+
+.verdict h4{font-family:'VT323'; font-weight:400; font-size:1.05rem; letter-spacing:2px;
+  text-transform:uppercase; border-bottom:1.5px solid var(--ink-soft);
+  margin:1rem 0 .4rem; padding-bottom:.15rem}
+.factors li{list-style:none; padding:.3rem 0; border-bottom:1px dashed var(--paper-edge);
+  font-size:.92rem}
+.factors li b{letter-spacing:.5px}
+.rules li{list-style:none; padding:.28rem 0 .28rem 1.5rem; position:relative; font-size:.88rem}
+.rules li::before{content:"§"; position:absolute; left:.3rem; color:var(--ink-soft)}
+.rules li.compliance{color:var(--deny); font-weight:bold}
+.finefoot{font-size:.68rem; color:var(--ink-soft); margin-top:1rem; line-height:1.5}
+.closebar{display:flex; justify-content:flex-end; margin-top:1.1rem}
+
+/* cold start / status */
+.boothmsg{
+  max-width:1180px; margin:1rem auto 0; padding:0 1rem; display:none;
+}
+.boothmsg.show{display:block}
+.boothmsg .inner{
+  background:var(--booth3); color:#e8e2c8; border:2px dashed #a7a189;
+  font-family:'VT323'; letter-spacing:1px; font-size:1.1rem;
+  padding:.7rem 1rem; text-align:center;
+}
+@media (prefers-reduced-motion: reduce){
+  .stamp{transition:none} .stamp.slam{transform:scale(1) rotate(-8deg)}
+  .verdict.shake{animation:none} .gauge .needle{transition:none}
+}
+</style>
+</head>
+<body>
+
+<header class="banner">
+  <div class="seal">M·T·I</div>
+  <div>
+    <h1>Transaction Checkpoint</h1>
+    <small>MINISTRY OF TRANSACTION INTEGRITY · INSPECTION BOOTH 07</small>
+  </div>
+  <div class="daterow">
+    <div id="today">—</div>
+    <div id="apistatus" class="warn">CONNECTING…</div>
+  </div>
+</header>
+
+<div class="boothmsg" id="boothmsg"><div class="inner">
+  ⏳ BOOTH OPENING — the inspector is walking to the booth (server waking, up to a minute). Retrying…
+</div></div>
+
+<main class="desk">
+
+  <!-- ====== LEFT: the dossier ====== -->
+  <section class="sheet tilt-l" aria-labelledby="dossier-h">
+    <span class="stamp-corner">FORM TX-07</span>
+    <h2 id="dossier-h">Transaction Dossier</h2>
+    <form id="dossier" class="grid2" onsubmit="return false">
+      <div class="field"><label for="amt">Amount (USD)</label>
+        <input id="amt" type="number" min="0" step="0.01" value="249.99"></div>
+      <div class="field"><label for="pcd">Product code</label>
+        <select id="pcd"><option value="">—</option>
+          <option>W</option><option>C</option><option>R</option>
+          <option>H</option><option>S</option></select></div>
+      <div class="field"><label for="c4">Card network</label>
+        <select id="c4"><option value="">—</option>
+          <option>visa</option><option>mastercard</option>
+          <option>american express</option><option>discover</option></select></div>
+      <div class="field"><label for="c6">Card type</label>
+        <select id="c6"><option value="">—</option>
+          <option>credit</option><option>debit</option>
+          <option>charge card</option><option>debit or credit</option></select></div>
+      <div class="field"><label for="pem">Purchaser email domain</label>
+        <select id="pem"><option value="">—</option>
+          <option>gmail.com</option><option>yahoo.com</option><option>hotmail.com</option>
+          <option>outlook.com</option><option>icloud.com</option><option>aol.com</option>
+          <option>anonymous.com</option><option>protonmail.com</option>
+          <option>mail.com</option><option>outlook.es</option></select></div>
+      <div class="field"><label for="rem">Recipient email domain</label>
+        <select id="rem"><option value="">—</option>
+          <option>gmail.com</option><option>yahoo.com</option><option>hotmail.com</option>
+          <option>outlook.com</option><option>icloud.com</option><option>aol.com</option>
+          <option>anonymous.com</option><option>protonmail.com</option>
+          <option>mail.com</option><option>outlook.es</option></select></div>
+      <div class="field"><label for="dev">Device type</label>
+        <select id="dev"><option value="">—</option>
+          <option>desktop</option><option>mobile</option></select></div>
+      <div class="field"><label for="os">Operating system</label>
+        <select id="os"><option value="">—</option>
+          <option>Windows 10</option><option>Windows 7</option><option>Mac OS X 10_12_6</option>
+          <option>iOS 11.2.1</option><option>Android 7.0</option><option>Linux</option></select></div>
+      <div class="field"><label for="br">Browser</label>
+        <select id="br"><option value="">—</option>
+          <option>chrome 63.0</option><option>mobile safari 11.0</option>
+          <option>firefox 57.0</option><option>edge 16.0</option>
+          <option>ie 11.0 for desktop</option></select></div>
+    </form>
+    <div class="actions">
+      <button class="primary" id="btn-stamp">⬤ Stamp decision</button>
+      <button id="btn-archive">Pull archived case</button>
+    </div>
+  </section>
+
+  <!-- ====== RIGHT column ====== -->
+  <div style="display:flex; flex-direction:column; gap:1.4rem">
+
+    <section class="sheet tilt-r" aria-labelledby="dir-h">
+      <span class="pin" aria-hidden="true"></span>
+      <h2 id="dir-h">Ministry Directives</h2>
+      <ul class="directives">
+        <li class="deny">High-risk email domain (protonmail.com, mail.com, outlook.es) on transfers of $500 or more.</li>
+        <li class="deny">Origin listed under sanctioned regions (Region A · Region B).</li>
+        <li class="deny">Charge cards barred above $2,000.</li>
+        <li class="detain">Purchaser and recipient email domains differ on transfers of $1,000 or more.</li>
+        <li class="deny">Model risk score at or above <b>85%</b> — automatic denial.</li>
+        <li class="detain">Model risk score at or above the operating threshold (<b id="tstar-inline">…</b>) — hold for review.</li>
+      </ul>
+      <p class="note">Directives are read from the checkpoint rulebook. Field amendment privileges pending (future release).</p>
+    </section>
+
+    <section class="sheet" aria-labelledby="pen-h">
+      <h2 id="pen-h">Penalty Schedule</h2>
+      <label for="fpslider" style="font-size:.72rem; letter-spacing:2px; text-transform:uppercase; color:var(--ink-soft)">
+        Cost of one wrongful denial: <b id="fplabel" style="font-size:1rem; color:var(--ink)">$25</b>
+      </label>
+      <input type="range" id="fpslider" min="0" max="11" step="1" value="4"
+             aria-label="Cost per wrongly declined customer">
+      <div class="regime">
+        <div class="col old"><h4>Old regime · static rulebook</h4>
+          <div class="big" id="r-cost">…</div>
+          <div class="sub">expected loss per 1M transactions</div>
+          <div class="sub" id="r-pr">…</div></div>
+        <div class="col new"><h4>New regime · inspector model</h4>
+          <div class="big" id="m-cost">…</div>
+          <div class="sub">expected loss per 1M transactions</div>
+          <div class="sub" id="m-pr">…</div></div>
+      </div>
+      <div class="savings" id="savings">…</div>
+    </section>
+
+    <section class="ledger" aria-labelledby="led-h">
+      <h2 id="led-h">Daily Ledger</h2>
+      <div id="ledgerrows"></div>
+      <p class="lfoot" id="ledfoot"></p>
+    </section>
+
+  </div>
+</main>
+
+<!-- ====== verdict overlay ====== -->
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="v-h">
+  <div class="verdict" id="verdictcard">
+    <div class="stamp" id="stamp">DENIED</div>
+    <h3 id="v-h">Inspection Result</h3>
+    <div class="caseid" id="v-case">CASE — MANUAL ENTRY</div>
+
+    <div class="gauge">
+      <div class="track" id="gtrack">
+        <div class="seg admit"  id="seg-a"></div>
+        <div class="seg detain" id="seg-d"></div>
+        <div class="seg deny"   id="seg-b"></div>
+        <div class="needle" id="needle" style="left:0%"></div>
+      </div>
+      <div class="ticks" id="gticks"></div>
+      <div class="score">RISK: <b id="v-prob">—</b> · ASSESSMENT: <b id="v-band">—</b></div>
+    </div>
+
+    <h4>Cited irregularities</h4>
+    <ul class="factors" id="v-factors"></ul>
+
+    <h4>Directives invoked</h4>
+    <ul class="rules" id="v-rules"></ul>
+
+    <p class="finefoot">Additional proprietary behavioral signals contribute to every score and are not
+    itemized here. Assessment latency: <span id="v-lat">—</span> ms (server-side).
+    Cited factors indicate model correlation, not established cause.</p>
+
+    <div class="closebar"><button id="btn-close">Return to booth</button></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* Mirrors src/rules_config.py — replace with GET /rules once the API exposes it. */
+const FP_STEPS=[5,10,15,20,25,30,40,50,75,100,150,200];
+const BLOCK_BAND=0.85;
+let T_STAR=0.13, SAMPLE_COUNT=200;
+
+const $=id=>document.getElementById(id);
+const fmt$=n=>"$"+Intl.NumberFormat("en-US",{maximumFractionDigits:0}).format(n);
+const pct=(x,d=1)=>(100*x).toFixed(d)+"%";
+
+$("today").textContent=new Date().toLocaleDateString("en-US",
+  {year:"numeric",month:"short",day:"2-digit"}).toUpperCase();
+
+/* ---------- resilient fetch (Render cold start) ---------- */
+async function api(path,opts={},retries=5){
+  for(let i=0;i<=retries;i++){
+    try{
+      const r=await fetch(path,opts);
+      if(!r.ok) throw new Error(r.status);
+      $("boothmsg").classList.remove("show");
+      $("apistatus").textContent="BOOTH OPEN"; $("apistatus").className="ok";
+      return await r.json();
+    }catch(e){
+      $("apistatus").textContent="BOOTH CLOSED"; $("apistatus").className="warn";
+      $("boothmsg").classList.add("show");
+      if(i===retries) throw e;
+      await new Promise(res=>setTimeout(res,9000));
+    }
+  }
+}
+
+/* ---------- gauge ---------- */
+function drawGauge(prob,decision){
+  const a=T_STAR*100, d=(BLOCK_BAND-T_STAR)*100, b=(1-BLOCK_BAND)*100;
+  $("seg-a").style.width=a+"%"; $("seg-d").style.width=d+"%"; $("seg-b").style.width=b+"%";
+  $("gticks").innerHTML=
+    `<span style="left:0%">0</span>`+
+    `<span style="left:${a}%">${(T_STAR*100).toFixed(0)}% HOLD</span>`+
+    `<span style="left:${BLOCK_BAND*100}%">85% DENY</span>`+
+    `<span style="left:100%">100</span>`;
+  requestAnimationFrame(()=>{ $("needle").style.left=(prob*100).toFixed(2)+"%"; });
+  $("v-prob").textContent=pct(prob); $("v-prob").className=decision;
+}
+
+/* ---------- verdict overlay ---------- */
+const STAMPS={approve:"ADMITTED",review:"DETAINED",block:"DENIED"};
+function showVerdict(res,caseLabel){
+  $("v-case").textContent=caseLabel;
+  $("v-band").textContent=res.risk_band.toUpperCase();
+  $("v-lat").textContent=res.latency_ms.toFixed(1);
+
+  const f=$("v-factors"); f.innerHTML="";
+  if(res.risk_factors.length===0){
+    f.innerHTML="<li>No interpretable irregularities above threshold — behavioral signals dominate this score.</li>";
+  }else res.risk_factors.forEach((x,i)=>{
+    const li=document.createElement("li");
+    li.innerHTML=`<b>${i+1}. ${x.label}</b>${x.value?` — ${x.value}`:""}`;
+    f.appendChild(li);
+  });
+
+  const r=$("v-rules"); r.innerHTML="";
+  if(res.rules_fired.length===0){
+    r.innerHTML="<li>None — cleared on model assessment alone.</li>";
+  }else res.rules_fired.forEach((id,i)=>{
+    const li=document.createElement("li");
+    li.textContent=res.rule_descriptions[i]||id;
+    if(id.startsWith("compliance:")) li.classList.add("compliance");
+    r.appendChild(li);
+  });
+
+  const st=$("stamp");
+  st.textContent=STAMPS[res.decision]||res.decision.toUpperCase();
+  st.className="stamp "+res.decision;
+  $("overlay").classList.add("open");
+  drawGauge(res.probability,res.decision);
+  setTimeout(()=>{ st.classList.add("slam");
+    $("verdictcard").classList.add("shake"); },120);
+  setTimeout(()=>$("verdictcard").classList.remove("shake"),600);
+  $("btn-close").focus();
+}
+$("btn-close").onclick=()=>{ $("overlay").classList.remove("open");
+  $("stamp").classList.remove("slam"); };
+$("overlay").addEventListener("click",e=>{ if(e.target===$("overlay")) $("btn-close").click(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") $("btn-close").click(); });
+
+/* ---------- scoring ---------- */
+function payload(){
+  const p={TransactionAmt:parseFloat($("amt").value)||0};
+  const map={ProductCD:"pcd",card4:"c4",card6:"c6",P_emaildomain:"pem",
+             R_emaildomain:"rem",DeviceType:"dev",id_30:"os",id_31:"br"};
+  for(const[k,id]of Object.entries(map)){ const v=$(id).value; if(v) p[k]=v; }
+  return p;
+}
+$("btn-stamp").onclick=async()=>{
+  const b=$("btn-stamp"); b.disabled=true; b.textContent="PROCESSING…";
+  try{
+    const res=await api("/score",{method:"POST",
+      headers:{"Content-Type":"application/json"},body:JSON.stringify(payload())});
+    showVerdict(res,"CASE — MANUAL ENTRY");
+  }catch(e){ alert("The booth could not reach the ministry. Try again shortly."); }
+  b.disabled=false; b.textContent="⬤ Stamp decision";
+};
+$("btn-archive").onclick=async()=>{
+  const b=$("btn-archive"); b.disabled=true; b.textContent="RETRIEVING…";
+  try{
+    const id=Math.floor(Math.random()*SAMPLE_COUNT);
+    const res=await api("/score",{method:"POST",
+      headers:{"Content-Type":"application/json"},body:JSON.stringify({sample_id:id})});
+    showVerdict(res,`ARCHIVED CASE #${String(id).padStart(4,"0")}`);
+  }catch(e){ alert("Archive unavailable. Try again shortly."); }
+  b.disabled=false; b.textContent="Pull archived case";
+};
+
+/* ---------- penalty schedule ---------- */
+async function loadComparison(fp){
+  const d=await api(`/comparison?fp_cost=${fp}`);
+  $("r-cost").textContent=fmt$(d.rules_only.cost_per_million);
+  $("m-cost").textContent=fmt$(d.model.cost_per_million);
+  $("r-pr").textContent=`catches ${pct(d.rules_only.recall)} of fraud · ${pct(d.rules_only.precision)} precision`;
+  $("m-pr").textContent=`catches ${pct(d.model.recall)} of fraud · ${pct(d.model.precision)} precision · threshold ${d.model.threshold.toFixed(2)}`;
+  const diff=d.rules_only.cost_per_million-d.model.cost_per_million;
+  const rel=(100*diff/d.rules_only.cost_per_million).toFixed(0);
+  $("savings").textContent=diff>0
+    ? `MODEL REGIME SAVES ${fmt$(diff)} PER 1M TRANSACTIONS (−${rel}%)`
+    : `MODEL REGIME COSTS ${fmt$(-diff)} MORE PER 1M AT THIS PENALTY`;
+}
+$("fpslider").addEventListener("input",()=>{ $("fplabel").textContent="$"+FP_STEPS[$("fpslider").value]; });
+$("fpslider").addEventListener("change",()=>loadComparison(FP_STEPS[$("fpslider").value]));
+
+/* ---------- ledger ---------- */
+async function loadTriage(){
+  const d=await api("/triage");
+  T_STAR=d.t_star;
+  $("tstar-inline").textContent=(T_STAR*100).toFixed(0)+"%";
+  const rows=$("ledgerrows"); rows.innerHTML="";
+  const names={approve:["ADMITTED","approve"],review:["DETAINED","review"],block:["DENIED","block"]};
+  for(const k of ["approve","review","block"]){
+    const t=d.triage[k];
+    rows.insertAdjacentHTML("beforeend",
+      `<div class="lrow ${names[k][1]}">
+         <div class="top"><span>${names[k][0]}</span>
+           <b>${t.count.toLocaleString()} · ${t.pct.toFixed(1)}%</b></div>
+         <div class="lbar"><i style="width:${t.pct}%"></i></div>
+         <div class="top" style="font-size:.8rem; opacity:.85">
+           <span>fraud rate in band</span><span>${t.fraud_rate.toFixed(1)}%</span></div>
+       </div>`);
+  }
+  $("ledfoot").textContent=
+    `Of ${d.total.toLocaleString()} processed cases, human inspectors review only the DETAINED band — `+
+    `${d.triage.review.pct.toFixed(1)}% of traffic holding ${d.triage.review.fraud_caught.toLocaleString()} `+
+    `confirmed frauds at a ${d.triage.review.fraud_rate.toFixed(1)}% hit rate.`;
+}
+
+/* ---------- init ---------- */
+(async function(){
+  try{
+    const s=await api("/samples"); SAMPLE_COUNT=s.count;
+    await loadTriage();
+    await loadComparison(25);
+  }catch(e){ /* boothmsg already shown by api() */ }
+})();
+</script>
+</body>
+</html>
