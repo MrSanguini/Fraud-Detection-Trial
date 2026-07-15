@@ -1,22 +1,22 @@
 {
   "triage": {
     "approve": {
-      "count": 99096,
-      "pct": 83.90286856097808,
-      "fraud_rate": 1.2694760636150804,
-      "fraud_caught": 1258
+      "count": 110338,
+      "pct": 93.42127544281506,
+      "fraud_rate": 1.3023618336384564,
+      "fraud_caught": 1437
     },
     "review": {
-      "count": 6584,
-      "pct": 5.574558878314763,
-      "fraud_rate": 27.825030376670718,
-      "fraud_caught": 1832
+      "count": 6755,
+      "pct": 5.719341619534664,
+      "fraud_rate": 25.28497409326425,
+      "fraud_caught": 1708
     },
     "block": {
-      "count": 12428,
-      "pct": 10.52257256070715,
-      "fraud_rate": 7.8371419375603475,
-      "fraud_caught": 974
+      "count": 1015,
+      "pct": 0.8593829376502863,
+      "fraud_rate": 90.54187192118228,
+      "fraud_caught": 919
     }
   },
   "t_star": 0.09,

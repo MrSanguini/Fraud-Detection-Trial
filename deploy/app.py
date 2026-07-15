@@ -56,6 +56,7 @@ class ScoreResponse(BaseModel):
     rules_fired: List[str]
     rule_descriptions: List[str]
     risk_factors: List[RiskFactor]
+    behavioral_factors: List[RiskFactor]
     latency_ms: float
 
 def band(p: float) -> str:
@@ -90,6 +91,8 @@ def score(req: ScoreRequest):
            for c in row.columns}
     res = apply_rules(prob, txn, T_STAR)
     factors = top_risk_factors(booster, row, FEATURE_ORDER, txn, k=3)
+    factors_interp = top_risk_factors(booster, row, FEATURE_ORDER, txn, k=3, interpretable_only=True)
+    factors_raw    = top_risk_factors(booster, row, FEATURE_ORDER, txn, k=3, interpretable_only=False)
 
     return ScoreResponse(
         probability=prob, risk_band=band(prob), decision=res.decision,
@@ -97,7 +100,10 @@ def score(req: ScoreRequest):
         rule_descriptions=[cfg.RULE_DESCRIPTIONS.get(r, r) for r in res.rules_fired],
         risk_factors=[RiskFactor(label=f["label"],
                                  value=None if f["value"] is None else str(f["value"]))
-                      for f in factors],
+                      for f in factors_interp],
+        behavioral_factors = [RiskFactor(label=f["label"],
+                                 value=None if f["value"] is None else str(f["value"]))
+                      for f in factors_raw],
         latency_ms=(time.perf_counter() - t0) * 1000,
     )
 
