@@ -1,0 +1,174 @@
+{
+  "fp_costs": [
+    5,
+    10,
+    15,
+    20,
+    25,
+    30,
+    40,
+    50,
+    75,
+    100,
+    150,
+    200
+  ],
+  "grid": {
+    "5": {
+      "rules_only": {
+        "cost_per_million": 2754665.4302848517,
+        "recall": 0.3125,
+        "precision": 0.034604904632152586
+      },
+      "model": {
+        "cost_per_million": 1711393.0794776636,
+        "recall": 0.796013779527559,
+        "precision": 0.16346639717028802,
+        "threshold": 0.04
+      }
+    },
+    "10": {
+      "rules_only": {
+        "cost_per_million": 4254563.828361189,
+        "recall": 0.3125,
+        "precision": 0.034604904632152586
+      },
+      "model": {
+        "cost_per_million": 2270955.234189682,
+        "recall": 0.7529527559055118,
+        "precision": 0.2036063610353317,
+        "threshold": 0.05
+      }
+    },
+    "15": {
+      "rules_only": {
+        "cost_per_million": 5754462.226437526,
+        "recall": 0.3125,
+        "precision": 0.034604904632152586
+      },
+      "model": {
+        "cost_per_million": 2689797.8357102443,
+        "recall": 0.6808562992125984,
+        "precision": 0.2856995353639649,
+        "threshold": 0.08
+      }
+    },
+    "20": {
+      "rules_only": {
+        "cost_per_million": 7254360.624513863,
+        "recall": 0.3125,
+        "precision": 0.034604904632152586
+      },
+      "model": {
+        "cost_per_million": 2938874.451143216,
+        "recall": 0.6464074803149606,
+        "precision": 0.3380952380952381,
+        "threshold": 0.09
+      }
+    },
+    "25": {
+      "rules_only": {
+        "cost_per_million": 8754259.0225902,
+        "recall": 0.3125,
+        "precision": 0.034604904632152586
+      },
+      "model": {
+        "cost_per_million": 3124624.7389247357,
+        "recall": 0.6154035433070866,
+        "precision": 0.3835301334151204,
+        "threshold": 0.09999999999999999
+      }
+    },
+    "30": {
+      "rules_only": {
+        "cost_per_million": 10254157.420666538,
+        "recall": 0.3125,
+        "precision": 0.034604904632152586
+      },
+      "model": {
+        "cost_per_million": 3292799.511088476,
+        "recall": 0.5686515748031497,
+        "precision": 0.46470943092700584,
+        "threshold": 0.12
+      }
+    },
+    "40": {
+      "rules_only": {
+        "cost_per_million": 13253954.21681921,
+        "recall": 0.3125,
+        "precision": 0.034604904632152586
+      },
+      "model": {
+        "cost_per_million": 3500789.0205315957,
+        "recall": 0.5332185039370079,
+        "precision": 0.5248244126907241,
+        "threshold": 0.16
+      }
+    },
+    "50": {
+      "rules_only": {
+        "cost_per_million": 16253751.012971886,
+        "recall": 0.3125,
+        "precision": 0.034604904632152586
+      },
+      "model": {
+        "cost_per_million": 3642326.19850894,
+        "recall": 0.5118110236220472,
+        "precision": 0.5650638413474599,
+        "threshold": 0.22
+      }
+    },
+    "75": {
+      "rules_only": {
+        "cost_per_million": 23753243.003353566,
+        "recall": 0.3125,
+        "precision": 0.034604904632152586
+      },
+      "model": {
+        "cost_per_million": 3890055.1164344433,
+        "recall": 0.452755905511811,
+        "precision": 0.6640202093107181,
+        "threshold": 0.35000000000000003
+      }
+    },
+    "100": {
+      "rules_only": {
+        "cost_per_million": 31252734.993735254,
+        "recall": 0.3125,
+        "precision": 0.034604904632152586
+      },
+      "model": {
+        "cost_per_million": 4087120.5142059745,
+        "recall": 0.452755905511811,
+        "precision": 0.6640202093107181,
+        "threshold": 0.35000000000000003
+      }
+    },
+    "150": {
+      "rules_only": {
+        "cost_per_million": 46251718.97449862,
+        "recall": 0.3125,
+        "precision": 0.034604904632152586
+      },
+      "model": {
+        "cost_per_million": 4290506.584958338,
+        "recall": 0.36195866141732286,
+        "precision": 0.8104683195592286,
+        "threshold": 0.61
+      }
+    },
+    "200": {
+      "rules_only": {
+        "cost_per_million": 61250702.95526199,
+        "recall": 0.3125,
+        "precision": 0.034604904632152586
+      },
+      "model": {
+        "cost_per_million": 4416602.13315023,
+        "recall": 0.34301181102362205,
+        "precision": 0.8302561048243002,
+        "threshold": 0.63
+      }
+    }
+  }
+}

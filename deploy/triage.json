@@ -1,0 +1,24 @@
+{
+  "triage": {
+    "approve": {
+      "count": 99096,
+      "pct": 83.90286856097808,
+      "fraud_rate": 1.2694760636150804,
+      "fraud_caught": 1258
+    },
+    "review": {
+      "count": 6584,
+      "pct": 5.574558878314763,
+      "fraud_rate": 27.825030376670718,
+      "fraud_caught": 1832
+    },
+    "block": {
+      "count": 12428,
+      "pct": 10.52257256070715,
+      "fraud_rate": 7.8371419375603475,
+      "fraud_caught": 974
+    }
+  },
+  "t_star": 0.09,
+  "total": 118108
+}
