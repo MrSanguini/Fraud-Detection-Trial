@@ -458,7 +458,7 @@ function showVerdict(res,caseLabel){
     f.appendChild(li);
   });
 
-  const b=$("v-behav"); f.innerHTML="";
+  const b=$("v-behav"); b.innerHTML="";
   if(res.behavioral_factors.length===0){
     b.innerHTML="<li>No behavioral irregularities above threshold — interpretable signals dominate this score.</li>";
   }else res.behavioral_factors.forEach((x,i)=>{
