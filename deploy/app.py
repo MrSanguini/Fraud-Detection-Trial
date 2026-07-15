@@ -38,8 +38,8 @@ class RiskFactor(BaseModel):
     value: Optional[str] = None
 
 class ScoreRequest(BaseModel):
-    TransactionAmt: float = Field(..., examples=[249.99])
-    ProductCD: Optional[str] = Field(None, examples=["W"])
+    TransactionAmt: Optional[float] = Field(None, examples=[249.99])
+    ProductCD: Optional[str] = None
     card4: Optional[str] = Field(None, examples=["visa"])
     card6: Optional[str] = Field(None, examples=["debit"])
     P_emaildomain: Optional[str] = Field(None, examples=["gmail.com"])
@@ -47,7 +47,7 @@ class ScoreRequest(BaseModel):
     DeviceType: Optional[str] = Field(None, examples=["mobile"])
     id_30: Optional[str] = None       # operating system
     id_31: Optional[str] = None       # browser
-    sample_id: Optional[int] = Field(None, description="Score a stored sample row instead")
+    sample_id: Optional[int] = None
 
 class ScoreResponse(BaseModel):
     probability: float
@@ -73,12 +73,13 @@ def score(req: ScoreRequest):
     if req.sample_id is not None:
         if not 0 <= req.sample_id < len(samples):
             raise HTTPException(404, f"sample_id must be 0..{len(samples)-1}")
-        row = samples.iloc[[req.sample_id]]
+        row = samples.iloc[[req.sample_id]].copy()
     else:
-        # Build a full feature row: start from a template, overwrite what's given
-        row = samples.iloc[[0]].copy()
+        if req.TransactionAmt is None:
+            raise HTTPException(422, "TransactionAmt is required for manual entry")
+        row = template.iloc[[0]].copy()      # or samples.iloc[[0]] for now
         for k, v in req.model_dump(exclude_none=True).items():
-            if k in row.columns:
+            if k in row.columns and k != "sample_id":
                 if str(row[k].dtype) == "category":
                     if v not in row[k].cat.categories:
                         row[k] = row[k].cat.add_categories([v])
