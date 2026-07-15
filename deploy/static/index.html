@@ -458,13 +458,13 @@ function showVerdict(res,caseLabel){
     f.appendChild(li);
   });
 
-  const f=$("v-behav"); f.innerHTML="";
+  const b=$("v-behav"); f.innerHTML="";
   if(res.behavioral_factors.length===0){
-    f.innerHTML="<li>No behavioral irregularities above threshold — interpretable signals dominate this score.</li>";
+    b.innerHTML="<li>No behavioral irregularities above threshold — interpretable signals dominate this score.</li>";
   }else res.behavioral_factors.forEach((x,i)=>{
     const li=document.createElement("li");
     li.innerHTML=`<b>${i+1}. ${x.label}</b>${x.value?` — ${x.value}`:""}`;
-    f.appendChild(li);
+    b.appendChild(li);
   });
 
   const r=$("v-rules"); r.innerHTML="";
