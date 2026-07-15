@@ -79,6 +79,8 @@ body{
   display:block; font-size:.66rem; letter-spacing:2px; text-transform:uppercase;
   color:var(--ink-soft); margin-bottom:.15rem;
 }
+.field .hint{display:block; font-size:.6rem; letter-spacing:1px; color:var(--ink-soft);
+  text-transform:none; margin-bottom:.2rem; font-style:italic}
 .field input, .field select{
   width:100%; font-family:'Special Elite'; font-size:1rem; color:var(--ink);
   background:transparent; border:none; border-bottom:2px dashed var(--ink-soft);
@@ -260,39 +262,48 @@ input[type=range]::-moz-range-thumb{width:18px;height:24px;background:var(--deny
     <h2 id="dossier-h">Transaction Dossier</h2>
     <form id="dossier" class="grid2" onsubmit="return false">
       <div class="field"><label for="amt">Amount (USD)</label>
+        <span class="hint">transaction value — drives missed-fraud cost</span>
         <input id="amt" type="number" min="0" step="0.01" value="249.99"></div>
       <div class="field"><label for="pcd">Product code</label>
+        <span class="hint">Vesta product category (W/C/R/H/S — meaning not disclosed in this dataset)</span>
         <select id="pcd"><option value="">—</option>
           <option>W</option><option>C</option><option>R</option>
           <option>H</option><option>S</option></select></div>
       <div class="field"><label for="c4">Card network</label>
+      <span class="hint">Card network provider</span>
         <select id="c4"><option value="">—</option>
           <option>visa</option><option>mastercard</option>
           <option>american express</option><option>discover</option></select></div>
       <div class="field"><label for="c6">Card type</label>
+        <span class="hint">Type of card used in transaction</span>
         <select id="c6"><option value="">—</option>
           <option>credit</option><option>debit</option>
           <option>charge card</option><option>debit or credit</option></select></div>
       <div class="field"><label for="pem">Purchaser email domain</label>
+        <span class="hint">Domain of the purchaser's (sender's') email</span>
         <select id="pem"><option value="">—</option>
           <option>gmail.com</option><option>yahoo.com</option><option>hotmail.com</option>
           <option>outlook.com</option><option>icloud.com</option><option>aol.com</option>
           <option>anonymous.com</option><option>protonmail.com</option>
           <option>mail.com</option><option>outlook.es</option></select></div>
       <div class="field"><label for="rem">Recipient email domain</label>
+        <span class="hint">Domain of the recipient's (receiver's') email</span>
         <select id="rem"><option value="">—</option>
           <option>gmail.com</option><option>yahoo.com</option><option>hotmail.com</option>
           <option>outlook.com</option><option>icloud.com</option><option>aol.com</option>
           <option>anonymous.com</option><option>protonmail.com</option>
           <option>mail.com</option><option>outlook.es</option></select></div>
       <div class="field"><label for="dev">Device type</label>
+        <span class="hint">Desktop or mobile device</span>
         <select id="dev"><option value="">—</option>
           <option>desktop</option><option>mobile</option></select></div>
       <div class="field"><label for="os">Operating system</label>
+        <span class="hint">Device's operating system (Desktop or mobile)</span>
         <select id="os"><option value="">—</option>
           <option>Windows 10</option><option>Windows 7</option><option>Mac OS X 10_12_6</option>
           <option>iOS 11.2.1</option><option>Android 7.0</option><option>Linux</option></select></div>
       <div class="field"><label for="br">Browser</label>
+        <span class="hint">Device's browser used to make transaction</span>
         <select id="br"><option value="">—</option>
           <option>chrome 63.0</option><option>mobile safari 11.0</option>
           <option>firefox 57.0</option><option>edge 16.0</option>
@@ -309,7 +320,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:24px;background:var(--deny
 
     <section class="sheet tilt-r" aria-labelledby="dir-h">
       <span class="pin" aria-hidden="true"></span>
-      <h2 id="dir-h">Ministry Directives</h2>
+      <h2 id="dir-h">Ministry Directives <span style="font-size:.7rem;color:var(--ink-soft)">— compliance rules applied after the model</span></h2>
       <ul class="directives">
         <li class="deny">High-risk email domain (protonmail.com, mail.com, outlook.es) on transfers of $500 or more.</li>
         <li class="deny">Origin listed under sanctioned regions (Region A · Region B).</li>
@@ -329,11 +340,11 @@ input[type=range]::-moz-range-thumb{width:18px;height:24px;background:var(--deny
       <input type="range" id="fpslider" min="0" max="11" step="1" value="4"
              aria-label="Cost per wrongly declined customer">
       <div class="regime">
-        <div class="col old"><h4>Old regime · static rulebook</h4>
+        <div class="col old"><h4>Rules only · today's system</h4>
           <div class="big" id="r-cost">…</div>
           <div class="sub">expected loss per 1M transactions</div>
           <div class="sub" id="r-pr">…</div></div>
-        <div class="col new"><h4>New regime · inspector model</h4>
+        <div class="col new"><h4>Model + rules · proposed</h4>
           <div class="big" id="m-cost">…</div>
           <div class="sub">expected loss per 1M transactions</div>
           <div class="sub" id="m-pr">…</div></div>
@@ -365,11 +376,15 @@ input[type=range]::-moz-range-thumb{width:18px;height:24px;background:var(--deny
         <div class="needle" id="needle" style="left:0%"></div>
       </div>
       <div class="ticks" id="gticks"></div>
-      <div class="score">RISK: <b id="v-prob">—</b> · ASSESSMENT: <b id="v-band">—</b></div>
+      <div class="score">RISK: <b id="v-prob">—</b> · MODEL DECISION: <b id="v-band">—</b></div>
     </div>
 
-    <h4>Cited irregularities</h4>
-    <ul class="factors" id="v-factors"></ul>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem">
+    <div><h4>Readable factors</h4><ul class="factors" id="v-factors"></ul></div>
+    <div><h4>Behavioral signals</h4><ul class="factors" id="v-behav"></ul>
+      <p style="font-size:.62rem;color:var(--ink-soft);margin-top:.3rem">
+        Proprietary patterns without public labels — typically the deciding factors.</p></div>
+    </div>
 
     <h4>Directives invoked</h4>
     <ul class="rules" id="v-rules"></ul>
@@ -438,6 +453,15 @@ function showVerdict(res,caseLabel){
   if(res.risk_factors.length===0){
     f.innerHTML="<li>No interpretable irregularities above threshold — behavioral signals dominate this score.</li>";
   }else res.risk_factors.forEach((x,i)=>{
+    const li=document.createElement("li");
+    li.innerHTML=`<b>${i+1}. ${x.label}</b>${x.value?` — ${x.value}`:""}`;
+    f.appendChild(li);
+  });
+
+  const f=$("v-behav"); f.innerHTML="";
+  if(res.behavioral_factors.length===0){
+    f.innerHTML="<li>No behavioral irregularities above threshold — interpretable signals dominate this score.</li>";
+  }else res.behavioral_factors.forEach((x,i)=>{
     const li=document.createElement("li");
     li.innerHTML=`<b>${i+1}. ${x.label}</b>${x.value?` — ${x.value}`:""}`;
     f.appendChild(li);
@@ -518,7 +542,9 @@ async function loadTriage(){
   T_STAR=d.t_star;
   $("tstar-inline").textContent=(T_STAR*100).toFixed(0)+"%";
   const rows=$("ledgerrows"); rows.innerHTML="";
-  const names={approve:["ADMITTED","approve"],review:["DETAINED","review"],block:["DENIED","block"]};
+  const names={approve:["ADMIT — auto-approve","approve"],
+             review:["DETAIN — send to human review","review"],
+             block:["DENY — auto-block","block"]};
   for(const k of ["approve","review","block"]){
     const t=d.triage[k];
     rows.insertAdjacentHTML("beforeend",
