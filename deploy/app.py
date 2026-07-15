@@ -21,6 +21,7 @@ preprocessor = joblib.load(HERE / "preprocessor.joblib")
 FEATURE_ORDER = booster.feature_names
 
 samples = pd.read_parquet(HERE / "samples.parquet")
+template = pd.read_parquet(HERE / "template.parquet")
 samples_meta = json.load(open(HERE / "samples_meta.json"))
 cost_grid = json.load(open(HERE / "cost_grid.json"))
 triage = json.load(open(HERE / "triage.json"))
